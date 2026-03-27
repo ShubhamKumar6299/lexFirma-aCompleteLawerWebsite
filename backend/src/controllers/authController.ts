@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import User from '../models/User';
 import Lawyer from '../models/Lawyer';
+import type { AuthRequest } from '../middleware/auth';
 
 const generateToken = (id: string): string => {
   return jwt.sign({ id }, process.env.JWT_SECRET || 'secret', {
@@ -65,7 +66,7 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
     res.json({
       success: true,
       token,
-      user: { id: user._id, name: user.name, email: user.email, role: user.role, lawyerProfile },
+      user: { id: user._id, name: user.name, email: user.email, role: user.role, avatar: user.avatar, lawyerProfile },
     });
   } catch (err) {
     next(err);
@@ -77,6 +78,47 @@ export const getMe = async (req: Request & { user?: any }, res: Response, next: 
   try {
     const user = await User.findById(req.user?._id).select('-password');
     res.json({ success: true, user });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// PUT /api/auth/avatar
+export const uploadAvatar = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    if (!req.file) {
+      res.status(400).json({ success: false, message: 'No image file provided' });
+      return;
+    }
+
+    const base64 = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+
+    const user = await User.findByIdAndUpdate(
+      req.user?._id,
+      { avatar: base64 },
+      { new: true }
+    ).select('-password');
+
+    if (!user) {
+      res.status(404).json({ success: false, message: 'User not found' });
+      return;
+    }
+
+    // Sync to Lawyer profile if applicable
+    if (user.role === 'lawyer') {
+      await Lawyer.findOneAndUpdate({ userId: user._id }, { avatar: base64 });
+    }
+
+    // Update localStorage-friendly payload
+    const payload = {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      avatar: user.avatar,
+    };
+
+    res.json({ success: true, user: payload });
   } catch (err) {
     next(err);
   }

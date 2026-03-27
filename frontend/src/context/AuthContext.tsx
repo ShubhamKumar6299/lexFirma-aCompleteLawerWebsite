@@ -10,6 +10,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (data: { name: string; email: string; password: string; role?: string; phone?: string }) => Promise<void>;
   logout: () => void;
+  updateAvatar: (avatar: string) => void;
   isLawyer: boolean;
   isAdmin: boolean;
 }
@@ -54,10 +55,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
   };
 
+  const updateAvatar = (avatar: string) => {
+    setUser(prev => {
+      if (!prev) return prev;
+      const updated = { ...prev, avatar };
+      localStorage.setItem('user', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   return (
     <AuthContext.Provider value={{
       user, token, isLoading,
-      login, register, logout,
+      login, register, logout, updateAvatar,
       isLawyer: user?.role === 'lawyer',
       isAdmin: user?.role === 'admin',
     }}>
