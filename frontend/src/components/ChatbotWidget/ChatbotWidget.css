@@ -133,6 +133,15 @@
 }
 .chatbot-send:hover:not(:disabled) { background: var(--primary-light); }
 .chatbot-send:disabled { opacity: 0.4; }
+.chatbot-disclaimer {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 6px 12px 8px;
+  border-top: 1px solid var(--border);
+  background: rgba(255,255,255,0.02);
+  line-height: 1.4;
+}
 @media (max-width: 480px) {
   .chatbot-wrapper { bottom: 16px; right: 16px; }
   .chatbot-window { width: calc(100vw - 32px); height: 400px; }
