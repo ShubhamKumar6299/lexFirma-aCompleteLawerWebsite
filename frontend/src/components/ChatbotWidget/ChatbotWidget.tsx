@@ -104,6 +104,9 @@ const ChatbotWidget: React.FC = () => {
               <FaPaperPlane />
             </button>
           </div>
+          <p className="chatbot-disclaimer">
+            ⚠️ This tool is for Assistive purposes only and does not constitute legal advice.
+          </p>
         </div>
       )}
 
