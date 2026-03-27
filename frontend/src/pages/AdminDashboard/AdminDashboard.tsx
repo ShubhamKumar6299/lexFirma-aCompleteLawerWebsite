@@ -13,7 +13,7 @@ import './AdminDashboard.css';
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-type Tab = 'stats' | 'users' | 'lawyers' | 'cases' | 'reviews' | 'meetings';
+type Tab = 'stats' | 'users' | 'lawyers' | 'cases' | 'reviews' | 'meetings' | 'messages';
 
 const AdminDashboard: React.FC = () => {
   const { user, token } = useAuth();
@@ -29,6 +29,7 @@ const AdminDashboard: React.FC = () => {
   const [cases, setCases] = useState<any[]>([]);
   const [reviews, setReviews] = useState<any[]>([]);
   const [meetings, setMeetings] = useState<any[]>([]);
+  const [messages, setMessages] = useState<any[]>([]);
 
   const headers = { Authorization: `Bearer ${token}` };
 
@@ -57,6 +58,9 @@ const AdminDashboard: React.FC = () => {
       } else if (t === 'meetings') {
         const r = await axios.get(`${API}/admin/meetings`, { headers });
         setMeetings(r.data.meetings);
+      } else if (t === 'messages') {
+        const r = await axios.get(`${API}/admin/messages`, { headers });
+        setMessages(r.data.messages);
       }
     } catch { toast.error('Failed to load data'); }
     finally { setLoading(false); }
@@ -82,6 +86,7 @@ const AdminDashboard: React.FC = () => {
     { id: 'cases', label: 'Cases', icon: <FaBriefcase /> },
     { id: 'reviews', label: 'Reviews', icon: <FaStar /> },
     { id: 'meetings', label: 'Meetings', icon: <FaCalendar /> },
+    { id: 'messages', label: 'Messages', icon: <FaUsers /> },
   ];
 
   return (
@@ -340,6 +345,75 @@ const AdminDashboard: React.FC = () => {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* MESSAGES */}
+        {!loading && tab === 'messages' && (
+          <div>
+            <h3 style={{ marginBottom: 16, fontSize: 16 }}>
+              All Messages — {messages.length} total
+              {messages.filter(m => !m.isRead).length > 0 && (
+                <span className="admin-role-badge" style={{ color: '#fbbf24', marginLeft: 10 }}>
+                  {messages.filter(m => !m.isRead).length} unread
+                </span>
+              )}
+            </h3>
+            {messages.length === 0 ? (
+              <div className="card" style={{ padding: 32, textAlign: 'center', color: 'var(--text-muted)' }}>
+                📩 No messages yet.
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {messages.map(m => (
+                  <div key={m._id} className="card" style={{
+                    padding: '16px 20px',
+                    borderLeft: m.isRead ? '3px solid var(--border)' : '3px solid #fbbf24',
+                    opacity: m.isRead ? 0.8 : 1,
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                          <div style={{
+                            width: 32, height: 32, borderRadius: '50%',
+                            background: 'linear-gradient(135deg, var(--primary), var(--primary-light))',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: 13, fontWeight: 700, color: 'white', flexShrink: 0,
+                          }}>
+                            {m.senderName?.[0] || '?'}
+                          </div>
+                          <div>
+                            <strong style={{ fontSize: 14 }}>{m.senderName}</strong>
+                            <span style={{ fontSize: 12, color: 'var(--text-muted)', marginLeft: 8 }}>{m.senderEmail}</span>
+                          </div>
+                          {!m.isRead && (
+                            <span className="admin-role-badge" style={{ color: '#fbbf24', fontSize: 10 }}>NEW</span>
+                          )}
+                        </div>
+                        <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>
+                          📌 {m.subject}
+                        </div>
+                        <p style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0 }}>
+                          {m.body}
+                        </p>
+                        <div style={{ marginTop: 8, fontSize: 11, color: 'var(--text-muted)' }}>
+                          To: <strong>{(m.lawyerId as any)?.userId?.name || 'Unknown Lawyer'}</strong>
+                          {' · '}
+                          {new Date(m.createdAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                      </div>
+                      <button
+                        className="admin-del-btn"
+                        onClick={() => action('delete', `/admin/messages/${m._id}`)}
+                        title="Delete message"
+                      >
+                        <FaTrash />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>

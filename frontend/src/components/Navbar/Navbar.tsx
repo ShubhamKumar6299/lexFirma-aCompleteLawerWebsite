@@ -59,7 +59,12 @@ const Navbar: React.FC = () => {
                 <div className="dropdown">
                   {user.role === 'lawyer' && (
                     <Link to="/dashboard" className="dropdown-item" onClick={() => setDropdownOpen(false)}>
-                      <FaTachometerAlt /> Dashboard
+                      <FaTachometerAlt /> My Dashboard
+                    </Link>
+                  )}
+                  {user.role === 'admin' && (
+                    <Link to="/admin" className="dropdown-item" onClick={() => setDropdownOpen(false)}>
+                      <FaTachometerAlt /> Admin Panel
                     </Link>
                   )}
                   <button className="dropdown-item logout" onClick={handleLogout}>

@@ -7,6 +7,7 @@ import {
   getAllCases, deleteCase,
   getAllReviews, deleteReview,
   getAllMeetings, updateMeetingStatusAdmin, deleteMeeting,
+  getAllMessages, deleteMessage,
 } from '../controllers/adminController';
 
 const router = Router();
@@ -32,5 +33,8 @@ router.delete('/reviews/:id', ...adminOnly, deleteReview);
 router.get('/meetings', ...adminOnly, getAllMeetings);
 router.put('/meetings/:id/status', ...adminOnly, updateMeetingStatusAdmin);
 router.delete('/meetings/:id', ...adminOnly, deleteMeeting);
+
+router.get('/messages', ...adminOnly, getAllMessages);
+router.delete('/messages/:id', ...adminOnly, deleteMessage);
 
 export default router;

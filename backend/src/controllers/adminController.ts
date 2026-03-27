@@ -154,3 +154,20 @@ export const deleteMeeting: H = async (req, res, next) => {
     res.json({ success: true, message: 'Meeting deleted' });
   } catch (err) { next(err); }
 };
+
+// ── Messages ──────────────────────────────────────────────────────────────────
+export const getAllMessages: H = async (_req, res, next) => {
+  try {
+    const messages = await Message.find()
+      .populate({ path: 'lawyerId', populate: { path: 'userId', select: 'name' } })
+      .sort({ createdAt: -1 });
+    res.json({ success: true, messages });
+  } catch (err) { next(err); }
+};
+
+export const deleteMessage: H = async (req, res, next) => {
+  try {
+    await Message.findByIdAndDelete(req.params.id);
+    res.json({ success: true, message: 'Message deleted' });
+  } catch (err) { next(err); }
+};
