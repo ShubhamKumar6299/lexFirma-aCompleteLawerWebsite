@@ -4,6 +4,7 @@ import { caseAPI, meetingAPI, messageAPI, chatAPI } from '../../services/api';
 import type { Case, Meeting } from '../../types';
 import toast from 'react-hot-toast';
 import { FaEye, FaEyeSlash, FaPlus, FaTrash, FaEnvelope, FaVideo, FaPhone, FaBriefcase, FaEdit, FaComments } from 'react-icons/fa';
+import AvatarUpload from '../../components/AvatarUpload/AvatarUpload';
 import './LawyerDashboard.css';
 
 const STATUS_OPTIONS = ['Pending', 'Active', 'Resolved', 'Dismissed', 'On Hold'];
@@ -90,8 +91,13 @@ const LawyerDashboard: React.FC = () => {
   return (
     <div className="dashboard-page page">
       <div className="container">
-        <h1 className="section-title" style={{ marginBottom: 8 }}>Lawyer Dashboard</h1>
-        <p className="section-subtitle" style={{ marginBottom: 32 }}>Manage your cases, meetings, and client messages.</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 24, marginBottom: 8 }}>
+          <AvatarUpload size={80} />
+          <div>
+            <h1 className="section-title" style={{ marginBottom: 4 }}>Lawyer Dashboard</h1>
+            <p className="section-subtitle">Manage your cases, meetings, and client messages.</p>
+          </div>
+        </div>
 
         {/* Stats */}
         <div className="dash-stats">

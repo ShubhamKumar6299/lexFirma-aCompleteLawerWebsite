@@ -8,6 +8,7 @@ import {
   FaChartBar, FaTrash, FaCheckCircle, FaTimesCircle,
   FaToggleOn, FaToggleOff, FaShieldAlt, FaSearch, FaSync
 } from 'react-icons/fa';
+import AvatarUpload from '../../components/AvatarUpload/AvatarUpload';
 import './AdminDashboard.css';
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -89,6 +90,9 @@ const AdminDashboard: React.FC = () => {
         <div className="admin-brand">
           <FaShieldAlt />
           <span>Admin Panel</span>
+        </div>
+        <div style={{ padding: '16px 0', display: 'flex', justifyContent: 'center' }}>
+          <AvatarUpload size={72} />
         </div>
         {tabs.map(t => (
           <button

@@ -30,7 +30,13 @@ export const authAPI = {
     API.post('/auth/register', data),
   login: (data: { email: string; password: string }) => API.post('/auth/login', data),
   getMe: () => API.get('/auth/me'),
+  uploadAvatar: (file: File) => {
+    const form = new FormData();
+    form.append('avatar', file);
+    return API.put('/auth/avatar', form, { headers: { 'Content-Type': 'multipart/form-data' } });
+  },
 };
+
 
 // ── Lawyers ───────────────────────────────────────────────────────
 export const lawyerAPI = {
