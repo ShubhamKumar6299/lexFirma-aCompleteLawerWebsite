@@ -1,8 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import 'multer';
 import User from '../models/User';
 import Lawyer from '../models/Lawyer';
 import type { AuthRequest } from '../middleware/auth';
+import { uploadBufferToS3 } from '../utils/s3';
 
 const generateToken = (id: string): string => {
   return jwt.sign({ id }, process.env.JWT_SECRET || 'secret', {
@@ -84,18 +86,23 @@ export const getMe = async (req: Request & { user?: any }, res: Response, next: 
 };
 
 // PUT /api/auth/avatar
-export const uploadAvatar = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+export const uploadAvatar = async (req: AuthRequest & { file?: any }, res: Response, next: NextFunction): Promise<void> => {
   try {
     if (!req.file) {
       res.status(400).json({ success: false, message: 'No image file provided' });
       return;
     }
 
-    const base64 = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+    // Upload the file to S3
+    const s3Url = await uploadBufferToS3(
+      req.file.buffer,
+      req.file.mimetype,
+      req.file.originalname || 'avatar.jpg'
+    );
 
     const user = await User.findByIdAndUpdate(
       req.user?._id,
-      { avatar: base64 },
+      { avatar: s3Url },
       { new: true }
     ).select('-password');
 
@@ -106,7 +113,7 @@ export const uploadAvatar = async (req: AuthRequest, res: Response, next: NextFu
 
     // Sync to Lawyer profile if applicable
     if (user.role === 'lawyer') {
-      await Lawyer.findOneAndUpdate({ userId: user._id }, { avatar: base64 });
+      await Lawyer.findOneAndUpdate({ userId: user._id }, { avatar: s3Url });
     }
 
     // Update localStorage-friendly payload
