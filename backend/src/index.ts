@@ -1,8 +1,10 @@
+import dotenv from 'dotenv';
+dotenv.config(); // ← Must be first: populates process.env before any module initializes
+
 import express from 'express';
 import http from 'http';
 import { Server as SocketServer, Socket } from 'socket.io';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import cron from 'node-cron';
 import connectDB from './config/db';
 import errorHandler from './middleware/errorHandler';
@@ -19,8 +21,6 @@ import chatbotRoutes from './routes/chatbotRoutes';
 import chatRoomRoutes from './routes/chatRoomRoutes';
 import adminRoutes from './routes/adminRoutes';
 import { refreshNews } from './controllers/newsController';
-
-dotenv.config();
 
 const app = express();
 const httpServer = http.createServer(app);
