@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { FaBalanceScale, FaBars, FaTimes, FaUserCircle, FaSignOutAlt, FaTachometerAlt } from 'react-icons/fa';
+import { FaBalanceScale, FaBars, FaTimes, FaSignOutAlt, FaTachometerAlt } from 'react-icons/fa';
 import './Navbar.css';
 
 const Navbar: React.FC = () => {
@@ -46,14 +46,25 @@ const Navbar: React.FC = () => {
           {user ? (
             <div className="user-menu">
               <button className="user-btn" onClick={() => setDropdownOpen(!dropdownOpen)}>
-                <FaUserCircle size={20} />
+                {user.avatar ? (
+                  <img src={user.avatar} alt={user.name} className="navbar-avatar" />
+                ) : (
+                  <span className="navbar-avatar-initials">
+                    {user.name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()}
+                  </span>
+                )}
                 <span>{user.name.split(' ')[0]}</span>
               </button>
               {dropdownOpen && (
                 <div className="dropdown">
                   {user.role === 'lawyer' && (
                     <Link to="/dashboard" className="dropdown-item" onClick={() => setDropdownOpen(false)}>
-                      <FaTachometerAlt /> Dashboard
+                      <FaTachometerAlt /> My Dashboard
+                    </Link>
+                  )}
+                  {user.role === 'admin' && (
+                    <Link to="/admin" className="dropdown-item" onClick={() => setDropdownOpen(false)}>
+                      <FaTachometerAlt /> Admin Panel
                     </Link>
                   )}
                   <button className="dropdown-item logout" onClick={handleLogout}>
