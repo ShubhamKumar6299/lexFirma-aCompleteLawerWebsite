@@ -26,12 +26,16 @@ const app = express();
 const httpServer = http.createServer(app);
 const PORT = process.env.PORT || 5000;
 
-const CORS_ORIGIN = process.env.CLIENT_URL || 'http://localhost:5173';
+// Support multiple origins: CLIENT_URL can be comma-separated
+// e.g. "https://lexfirma.vercel.app,https://lexfirma.pages.dev"
+const CORS_ORIGINS = (process.env.CLIENT_URL || 'http://localhost:5173')
+  .split(',')
+  .map(url => url.trim());
 
 // ─── Socket.io ────────────────────────────────────────────────────────────────
 const io = new SocketServer(httpServer, {
   cors: {
-    origin: CORS_ORIGIN,
+    origin: CORS_ORIGINS,
     methods: ['GET', 'POST'],
     credentials: true,
   },
@@ -87,7 +91,7 @@ io.on('connection', (socket: Socket) => {
 });
 
 // ─── Express Middleware ────────────────────────────────────────────────────────
-app.use(cors({ origin: CORS_ORIGIN, credentials: true }));
+app.use(cors({ origin: CORS_ORIGINS, credentials: true }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
