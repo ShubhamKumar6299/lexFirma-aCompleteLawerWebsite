@@ -19,7 +19,7 @@ const Register: React.FC = () => {
     try {
       await register(form);
       toast.success('Account created successfully!');
-      navigate(form.role === 'lawyer' ? '/dashboard' : '/lawyers');
+      navigate('/auth/login');
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Registration failed');
     } finally { setLoading(false); }
