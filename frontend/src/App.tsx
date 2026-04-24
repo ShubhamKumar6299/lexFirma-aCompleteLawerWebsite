@@ -18,6 +18,7 @@ import JoinMeeting from './pages/JoinMeeting/JoinMeeting';
 import AdminDashboard from './pages/AdminDashboard/AdminDashboard';
 import Login from './pages/Auth/Login';
 import Register from './pages/Auth/Register';
+import VerifyAccount from './pages/Auth/VerifyAccount';
 import NotFound from './pages/NotFound/NotFound';
 import './index.css';
 
@@ -44,6 +45,7 @@ function AppRoutes() {
         <Route path="/news" element={<CaseSurfing />} />
         <Route path="/auth/login" element={<Login />} />
         <Route path="/auth/register" element={<Register />} />
+        <Route path="/auth/verify" element={<VerifyAccount />} />
         <Route
           path="/dashboard"
           element={<ProtectedRoute requiredRole="lawyer"><LawyerDashboard /></ProtectedRoute>}

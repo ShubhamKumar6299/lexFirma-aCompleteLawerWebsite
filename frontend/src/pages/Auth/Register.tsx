@@ -18,8 +18,8 @@ const Register: React.FC = () => {
     setLoading(true);
     try {
       await register(form);
-      toast.success('Account created successfully!');
-      navigate('/auth/login');
+      toast.success('Account created! Please verify your email.');
+      navigate(`/auth/verify?email=${encodeURIComponent(form.email)}`);
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Registration failed');
     } finally { setLoading(false); }

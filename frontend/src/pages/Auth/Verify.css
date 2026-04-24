@@ -1,0 +1,194 @@
+/* ─── Verification Page Styles ──────────────────────────────────────────────── */
+.verify-page { display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 70px); padding: 24px; }
+
+.verify-card {
+  width: 100%; max-width: 460px; padding: 40px;
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+}
+
+/* ─── Step Indicators ─────────────────────────────────────────────────────── */
+.verify-steps {
+  display: flex; align-items: center; justify-content: center;
+  gap: 12px; margin-bottom: 32px;
+}
+.step-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
+}
+.step-dot.active {
+  background: #60a5fa;
+  box-shadow: 0 0 12px rgba(96,165,250,0.5);
+  transform: scale(1.3);
+}
+.step-dot.done {
+  background: #10b981;
+  box-shadow: 0 0 10px rgba(16,185,129,0.4);
+}
+.step-line {
+  width: 40px; height: 2px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 1px;
+  transition: background 0.4s ease;
+}
+.step-line.active { background: #60a5fa; }
+.step-line.done { background: #10b981; }
+
+/* ─── Header ──────────────────────────────────────────────────────────────── */
+.verify-header { text-align: center; margin-bottom: 28px; }
+.verify-icon {
+  font-size: 48px; margin-bottom: 12px;
+  animation: verify-float 3s ease-in-out infinite;
+}
+@keyframes verify-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.verify-header h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 24px; font-weight: 700; color: #f1f5f9;
+  margin-bottom: 6px;
+}
+.verify-header p {
+  color: #94a3b8; font-size: 14px; line-height: 1.5;
+}
+.verify-email-highlight {
+  color: #93c5fd; font-weight: 600;
+}
+
+/* ─── OTP Input Group ─────────────────────────────────────────────────────── */
+.otp-input-group {
+  display: flex; gap: 10px; justify-content: center;
+  margin: 24px 0;
+}
+.otp-input {
+  width: 48px; height: 56px;
+  background: rgba(30,41,59,0.8);
+  border: 2px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  color: #f1f5f9;
+  font-size: 22px; font-weight: 700;
+  text-align: center;
+  transition: all 0.3s ease;
+  outline: none;
+  caret-color: #60a5fa;
+}
+.otp-input:focus {
+  border-color: #60a5fa;
+  box-shadow: 0 0 16px rgba(96,165,250,0.25);
+  background: rgba(30,41,59,1);
+}
+.otp-input.error {
+  border-color: #ef4444;
+  animation: otp-shake 0.4s ease;
+}
+.otp-input.success {
+  border-color: #10b981;
+  background: rgba(16,185,129,0.1);
+}
+
+@keyframes otp-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+
+/* ─── Timer & Resend ──────────────────────────────────────────────────────── */
+.verify-timer {
+  text-align: center; font-size: 13px; color: #64748b;
+  margin-bottom: 8px;
+}
+.verify-timer strong { color: #f59e0b; }
+
+.verify-actions {
+  display: flex; flex-direction: column; gap: 10px;
+  margin-top: 20px;
+}
+.verify-btn {
+  width: 100%; padding: 14px;
+  border: none; border-radius: 12px;
+  font-size: 15px; font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+.verify-btn-primary {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(59,130,246,0.3);
+}
+.verify-btn-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 24px rgba(59,130,246,0.4);
+}
+.verify-btn-primary:disabled {
+  opacity: 0.5; cursor: not-allowed;
+}
+.verify-btn-ghost {
+  background: transparent;
+  color: #94a3b8;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+.verify-btn-ghost:hover:not(:disabled) {
+  background: rgba(255,255,255,0.05);
+  color: #cbd5e1;
+}
+.verify-btn-ghost:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ─── Success Animation ──────────────────────────────────────────────────── */
+.verify-success {
+  text-align: center; padding: 24px 0;
+  animation: verify-success-in 0.5s cubic-bezier(0.4,0,0.2,1);
+}
+@keyframes verify-success-in {
+  0% { opacity: 0; transform: scale(0.8); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.success-checkmark {
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #10b981, #059669);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 16px;
+  font-size: 32px;
+  box-shadow: 0 8px 32px rgba(16,185,129,0.3);
+  animation: checkmark-pop 0.5s cubic-bezier(0.4,0,0.2,1) 0.2s both;
+}
+@keyframes checkmark-pop {
+  0% { transform: scale(0); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+.verify-success h2 {
+  font-size: 20px; color: #10b981; font-weight: 700; margin-bottom: 8px;
+}
+.verify-success p {
+  color: #94a3b8; font-size: 14px;
+}
+
+/* ─── Step Transition ─────────────────────────────────────────────────────── */
+.verify-step-content {
+  animation: step-fade-in 0.4s ease;
+}
+@keyframes step-fade-in {
+  0% { opacity: 0; transform: translateY(12px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Error Message ───────────────────────────────────────────────────────── */
+.verify-error {
+  text-align: center; font-size: 13px; color: #ef4444;
+  margin-top: 8px; min-height: 20px;
+}
+
+/* ─── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .verify-card { padding: 28px 20px; }
+  .otp-input { width: 42px; height: 50px; font-size: 20px; }
+  .otp-input-group { gap: 8px; }
+}

@@ -5,6 +5,8 @@ import User from '../models/User';
 import Lawyer from '../models/Lawyer';
 import type { AuthRequest } from '../middleware/auth';
 import { uploadBufferToS3 } from '../utils/s3';
+import { generateOtp, OTP_EXPIRY_MS } from '../services/otpService';
+import { sendEmailOtp } from '../services/emailService';
 
 const generateToken = (id: string): string => {
   return jwt.sign({ id }, process.env.JWT_SECRET || 'secret', {
@@ -23,13 +25,35 @@ export const register = async (req: Request, res: Response, next: NextFunction):
       return;
     }
 
-    const user = await User.create({ name, email, password, role: role || 'user', phone });
-    const token = generateToken(user._id.toString());
+    // Generate email OTP
+    const otp = generateOtp();
+
+    const user = await User.create({
+      name,
+      email,
+      password,
+      role: role || 'user',
+      phone,
+      isEmailVerified: false,
+      isPhoneVerified: false,
+      emailOtp: otp,
+      emailOtpExpires: new Date(Date.now() + OTP_EXPIRY_MS),
+      lastOtpSentAt: new Date(),
+    });
+
+    // Send OTP email
+    try {
+      await sendEmailOtp(email, otp);
+    } catch (emailErr) {
+      console.error('Failed to send verification email:', emailErr);
+      // Still allow registration — user can resend OTP
+    }
 
     res.status(201).json({
       success: true,
-      token,
-      user: { id: user._id, name: user.name, email: user.email, role: user.role },
+      message: 'Account created. Please verify your email.',
+      requiresVerification: true,
+      email: user.email,
     });
   } catch (err) {
     next(err);
@@ -54,6 +78,29 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
       res.status(401).json({ success: false, message: 'Invalid credentials' });
+      return;
+    }
+
+    // Check email verification
+    if (!user.isEmailVerified) {
+      res.status(403).json({
+        success: false,
+        message: 'Please verify your email address first',
+        requiresVerification: true,
+        email: user.email,
+      });
+      return;
+    }
+
+    // Check phone verification (only if phone was provided)
+    if (user.phone && !user.isPhoneVerified) {
+      res.status(403).json({
+        success: false,
+        message: 'Please verify your phone number first',
+        requiresVerification: true,
+        email: user.email,
+        phoneStep: true,
+      });
       return;
     }
 
