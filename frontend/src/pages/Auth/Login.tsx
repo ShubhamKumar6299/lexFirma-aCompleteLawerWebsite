@@ -20,7 +20,14 @@ const Login: React.FC = () => {
       toast.success('Welcome back!');
       navigate('/');
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Login failed');
+      const data = err.response?.data;
+      // If user needs verification, redirect to verify page
+      if (data?.requiresVerification) {
+        toast.error(data.message);
+        navigate(`/auth/verify?email=${encodeURIComponent(data.email)}${data.phoneStep ? '&step=phone' : ''}`);
+        return;
+      }
+      toast.error(data?.message || 'Login failed');
     } finally { setLoading(false); }
   };
 

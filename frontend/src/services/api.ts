@@ -35,6 +35,12 @@ export const authAPI = {
     form.append('avatar', file);
     return API.put('/auth/avatar', form, { headers: { 'Content-Type': 'multipart/form-data' } });
   },
+  // Verification
+  sendEmailOtp: (email: string) => API.post('/auth/send-email-otp', { email }),
+  verifyEmail: (email: string, otp: string) => API.post('/auth/verify-email', { email, otp }),
+  sendPhoneOtp: (email: string, phone?: string) => API.post('/auth/send-phone-otp', { email, phone }),
+  verifyPhone: (email: string, otp: string) => API.post('/auth/verify-phone', { email, otp }),
+  resendOtp: (email: string, type: 'email' | 'phone') => API.post('/auth/resend-otp', { email, type }),
 };
 
 
