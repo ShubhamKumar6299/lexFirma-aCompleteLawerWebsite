@@ -72,6 +72,10 @@ export const authAPI = {
   sendPhoneOtp: (email: string, phone?: string) => API.post('/auth/send-phone-otp', { email, phone }),
   verifyPhone: (email: string, otp: string) => API.post('/auth/verify-phone', { email, otp }),
   resendOtp: (email: string, type: 'email' | 'phone') => API.post('/auth/resend-otp', { email, type }),
+  // Password reset
+  forgotPassword: (email: string) => API.post('/auth/forgot-password', { email }),
+  resetPassword: (email: string, otp: string, password: string) =>
+    API.post('/auth/reset-password', { email, otp, password }),
 };
 
 
