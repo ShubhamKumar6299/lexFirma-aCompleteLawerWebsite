@@ -7,6 +7,7 @@ import {
   verifyPhoneHandler,
   resendOtpHandler,
 } from '../controllers/verificationController';
+import { forgotPassword, resetPassword } from '../controllers/passwordController';
 import { protect } from '../middleware/auth';
 import upload from '../middleware/uploadMiddleware';
 
@@ -23,5 +24,9 @@ router.post('/verify-email', verifyEmailHandler);
 router.post('/send-phone-otp', sendPhoneOtpHandler);
 router.post('/verify-phone', verifyPhoneHandler);
 router.post('/resend-otp', resendOtpHandler);
+
+// Password reset
+router.post('/forgot-password', forgotPassword);
+router.post('/reset-password', resetPassword);
 
 export default router;

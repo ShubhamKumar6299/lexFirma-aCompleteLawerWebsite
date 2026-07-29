@@ -18,6 +18,12 @@ export interface IUser extends Document {
   phoneOtpExpires?: Date;
   otpAttempts: number;
   lastOtpSentAt?: Date;
+  // Password reset uses its own OTP fields so that requesting a reset can
+  // never interfere with an in-flight signup verification.
+  resetOtp?: string;
+  resetOtpExpires?: Date;
+  resetOtpAttempts: number;
+  lastResetOtpSentAt?: Date;
   createdAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
@@ -38,6 +44,10 @@ const userSchema = new Schema<IUser>(
     phoneOtpExpires: { type: Date, select: false },
     otpAttempts: { type: Number, default: 0, select: false },
     lastOtpSentAt: { type: Date, select: false },
+    resetOtp: { type: String, select: false },
+    resetOtpExpires: { type: Date, select: false },
+    resetOtpAttempts: { type: Number, default: 0, select: false },
+    lastResetOtpSentAt: { type: Date, select: false },
   },
   { timestamps: true }
 );

@@ -15,3 +15,10 @@ export const OTP_RESEND_COOLDOWN_MS = 60 * 1000;
 
 /** Maximum failed OTP verification attempts before requiring resend */
 export const MAX_OTP_ATTEMPTS = 5;
+
+/**
+ * Minimum password length. Must be enforced in the controller: the User
+ * schema's `minlength` runs after the pre-save hook has already replaced the
+ * password with its 60-character bcrypt hash, so it never sees the plaintext.
+ */
+export const MIN_PASSWORD_LENGTH = 6;

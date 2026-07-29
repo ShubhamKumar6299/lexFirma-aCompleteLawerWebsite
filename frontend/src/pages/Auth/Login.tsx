@@ -59,6 +59,11 @@ const Login: React.FC = () => {
           </button>
         </form>
         <p className="auth-footer">
+          <Link to={`/auth/forgot-password${form.email ? `?email=${encodeURIComponent(form.email)}` : ''}`} className="auth-link">
+            Forgot your password?
+          </Link>
+        </p>
+        <p className="auth-footer">
           Don't have an account? <Link to="/auth/register" className="auth-link">Register</Link>
         </p>
       </div>
