@@ -3,12 +3,12 @@ dotenv.config(); // ← Must be first: populates process.env before any module i
 
 import express from 'express';
 import http from 'http';
-import { Server as SocketServer, Socket } from 'socket.io';
+import { Server as SocketServer } from 'socket.io';
 import cors from 'cors';
 import cron from 'node-cron';
 import connectDB from './config/db';
 import errorHandler from './middleware/errorHandler';
-import ChatMessage from './models/ChatMessage';
+import { registerChatGateway } from './socket/chatGateway';
 
 import authRoutes from './routes/authRoutes';
 import lawyerRoutes from './routes/lawyerRoutes';
@@ -41,54 +41,7 @@ const io = new SocketServer(httpServer, {
   },
 });
 
-io.on('connection', (socket: Socket) => {
-  console.log(`🔌 Socket connected: ${socket.id}`);
-
-  // Join a deterministic chat room
-  socket.on('join_room', (roomId: string) => {
-    socket.join(roomId);
-    console.log(`Socket ${socket.id} joined room: ${roomId}`);
-  });
-
-  // Receive and broadcast a message, then persist it
-  socket.on('send_message', async (data: {
-    roomId: string;
-    senderId: string;
-    senderName: string;
-    senderRole: 'user' | 'lawyer' | 'admin';
-    content: string;
-  }) => {
-    try {
-      const saved = await ChatMessage.create({
-        roomId: data.roomId,
-        senderId: data.senderId,
-        senderName: data.senderName,
-        senderRole: data.senderRole,
-        content: data.content,
-      });
-
-      console.log(`💬 Message saved in room ${data.roomId} from ${data.senderName}`);
-
-      // Broadcast to everyone in the room (including sender for confirmation)
-      io.to(data.roomId).emit('receive_message', {
-        _id: saved._id,
-        roomId: saved.roomId,
-        senderId: saved.senderId,
-        senderName: saved.senderName,
-        senderRole: saved.senderRole,
-        content: saved.content,
-        createdAt: saved.createdAt,
-      });
-    } catch (err) {
-      console.error('❌ Failed to save message:', err);
-      socket.emit('error', { message: 'Failed to send message' });
-    }
-  });
-
-  socket.on('disconnect', () => {
-    console.log(`🔌 Socket disconnected: ${socket.id}`);
-  });
-});
+registerChatGateway(io);
 
 // ─── Express Middleware ────────────────────────────────────────────────────────
 app.use(cors({ origin: CORS_ORIGINS, credentials: true }));

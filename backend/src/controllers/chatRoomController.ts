@@ -1,20 +1,22 @@
-import { Request, Response, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
 import ChatMessage from '../models/ChatMessage';
 import Lawyer from '../models/Lawyer';
 import User from '../models/User';
+import type { AuthRequest } from '../middleware/auth';
+import { buildRoomId, canAccessRoom } from '../utils/chatRoom';
 
 // GET /api/chat/:lawyerId/history
 export const getChatHistory = async (
-  req: Request & { user?: any },
+  req: AuthRequest,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { lawyerId } = req.params;
-    const userId = req.user._id.toString();
+    const lawyerId = String(req.params.lawyerId);
+    const userId = String(req.user!._id);
 
     // Deterministic room id — same for both participants
-    const roomId = `room_${[userId, lawyerId].sort().join('_')}`;
+    const roomId = buildRoomId(userId, lawyerId);
 
     const messages = await ChatMessage.find({ roomId })
       .sort({ createdAt: 1 })
@@ -28,12 +30,12 @@ export const getChatHistory = async (
 
 // GET /api/chat/rooms — list all unique rooms for a lawyer (to see all their chats)
 export const getLawyerChatRooms = async (
-  req: Request & { user?: any },
+  req: AuthRequest,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
-    const lawyer = await Lawyer.findOne({ userId: req.user._id });
+    const lawyer = await Lawyer.findOne({ userId: req.user!._id });
     if (!lawyer) {
       res.status(404).json({ success: false, message: 'Lawyer profile not found' });
       return;
@@ -81,18 +83,25 @@ export const getLawyerChatRooms = async (
 
 // GET /api/chat/room/:roomId/history — get messages for a specific room
 export const getChatHistoryByRoom = async (
-  req: Request & { user?: any },
+  req: AuthRequest,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { roomId } = req.params;
+    const roomId = decodeURIComponent(String(req.params.roomId));
 
-    const messages = await ChatMessage.find({ roomId: decodeURIComponent(roomId as string) })
+    // The room id is caller-supplied, so membership must be proven before
+    // any message is returned.
+    if (!(await canAccessRoom(req.user!, roomId))) {
+      res.status(403).json({ success: false, message: 'Not authorized to view this conversation' });
+      return;
+    }
+
+    const messages = await ChatMessage.find({ roomId })
       .sort({ createdAt: 1 })
       .limit(100);
 
-    res.json({ success: true, roomId: decodeURIComponent(roomId as string), messages });
+    res.json({ success: true, roomId, messages });
   } catch (err) {
     next(err);
   }
