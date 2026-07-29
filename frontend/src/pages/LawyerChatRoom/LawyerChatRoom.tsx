@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { io, Socket } from 'socket.io-client';
 import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
+import toast from 'react-hot-toast';
 import { FaArrowLeft, FaPaperPlane, FaCircle } from 'react-icons/fa';
 import '../ChatRoom/ChatRoom.css';
 
@@ -52,14 +53,28 @@ const LawyerChatRoom: React.FC = () => {
 
   // Connect socket
   useEffect(() => {
-    if (!roomId) return;
+    if (!roomId || !token) return;
 
-    const socket = io(BACKEND_URL, { transports: ['websocket'] });
+    // The server authenticates the handshake and derives the sender identity
+    // from this token — see backend `socketAuth`.
+    const socket = io(BACKEND_URL, {
+      transports: ['websocket'],
+      auth: { token },
+    });
     socketRef.current = socket;
 
     socket.on('connect', () => {
       setConnected(true);
       socket.emit('join_room', roomId);
+    });
+
+    socket.on('connect_error', (err) => {
+      setConnected(false);
+      toast.error(err.message || 'Could not connect to chat');
+    });
+
+    socket.on('error', (payload: { message?: string }) => {
+      toast.error(payload?.message || 'Chat error');
     });
 
     socket.on('disconnect', () => setConnected(false));
@@ -88,23 +103,26 @@ const LawyerChatRoom: React.FC = () => {
       socket.disconnect();
       socketRef.current = null;
     };
-  }, [roomId]);
+  }, [roomId, token]);
 
   const sendMessage = useCallback(() => {
     const currentUser = userRef.current;
     if (!input.trim() || !socketRef.current || !currentUser || !roomId) return;
 
-    const msgData = {
+    const content = input.trim();
+
+    // Optimistically add the message to the UI immediately. The identity shown
+    // here is local-only — the server stamps the authoritative sender.
+    const optimisticMsg: ChatMsg = {
       roomId,
       senderId: currentUser._id,
       senderName: currentUser.name,
       senderRole: currentUser.role as 'user' | 'lawyer' | 'admin',
-      content: input.trim(),
+      content,
+      createdAt: new Date().toISOString(),
     };
-
-    const optimisticMsg: ChatMsg = { ...msgData, createdAt: new Date().toISOString() };
     setMessages(prev => [...prev, optimisticMsg]);
-    socketRef.current.emit('send_message', msgData);
+    socketRef.current.emit('send_message', { roomId, content });
     setInput('');
   }, [input, roomId]);
 

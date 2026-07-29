@@ -17,6 +17,16 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
+/**
+ * The API has historically returned the user id as `id` while the rest of the
+ * app reads `_id`. Normalizing on the way in keeps both shapes working,
+ * including sessions already persisted in localStorage.
+ */
+const normalizeUser = (raw: User & { id?: string }): User => ({
+  ...raw,
+  _id: raw._id ?? raw.id ?? '',
+});
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
@@ -25,7 +35,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const savedUser = localStorage.getItem('user');
     if (savedUser && token) {
-      setUser(JSON.parse(savedUser));
+      setUser(normalizeUser(JSON.parse(savedUser)));
     }
     setIsLoading(false);
   }, [token]);
@@ -33,10 +43,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = async (email: string, password: string) => {
     const res = await authAPI.login({ email, password });
     const { token: newToken, user: userData } = res.data;
+    const normalized = normalizeUser(userData);
     localStorage.setItem('token', newToken);
-    localStorage.setItem('user', JSON.stringify(userData));
+    localStorage.setItem('user', JSON.stringify(normalized));
     setToken(newToken);
-    setUser(userData);
+    setUser(normalized);
   };
 
   const register = async (data: { name: string; email: string; password: string; role?: string; phone?: string }) => {
