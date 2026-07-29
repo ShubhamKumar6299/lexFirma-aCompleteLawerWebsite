@@ -1,44 +1,51 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { useState } from 'react';
 import type { ReactNode } from 'react';
 import type { User } from '../types';
 import { authAPI } from '../services/api';
+import { AuthContext, type RegisterData } from './authContextValue';
 
-interface AuthContextType {
-  user: User | null;
-  token: string | null;
-  isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (data: { name: string; email: string; password: string; role?: string; phone?: string }) => Promise<void>;
-  logout: () => void;
-  updateAvatar: (avatar: string) => void;
-  isLawyer: boolean;
-  isAdmin: boolean;
-}
-
-const AuthContext = createContext<AuthContextType | null>(null);
+/**
+ * A user object as it may actually arrive: from the API, or from a session
+ * persisted in localStorage before `_id` was returned. Either identifier may
+ * be absent, which is precisely what `normalizeUser` exists to resolve.
+ */
+type RawUser = Omit<User, '_id' | 'id'> & { _id?: string; id?: string };
 
 /**
  * The API has historically returned the user id as `id` while the rest of the
- * app reads `_id`. Normalizing on the way in keeps both shapes working,
- * including sessions already persisted in localStorage.
+ * app reads `_id`. Populating both keeps every consumer working regardless of
+ * which shape came in.
  */
-const normalizeUser = (raw: User & { id?: string }): User => ({
-  ...raw,
-  _id: raw._id ?? raw.id ?? '',
-});
+const normalizeUser = (raw: RawUser): User => {
+  const id = raw._id ?? raw.id ?? '';
+  return { ...raw, _id: id, id };
+};
+
+/**
+ * Restores a session from localStorage. Reading storage is synchronous, so
+ * this runs as lazy `useState` initialization rather than in an effect —
+ * which avoids a render pass where the user appears logged out.
+ */
+const restoreSession = (): User | null => {
+  const savedUser = localStorage.getItem('user');
+  const savedToken = localStorage.getItem('token');
+  if (!savedUser || !savedToken) return null;
+  try {
+    return normalizeUser(JSON.parse(savedUser));
+  } catch {
+    // Corrupted entry — drop it rather than crashing the whole app on boot.
+    localStorage.removeItem('user');
+    return null;
+  }
+};
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
-  const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(restoreSession);
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem('token'));
 
-  useEffect(() => {
-    const savedUser = localStorage.getItem('user');
-    if (savedUser && token) {
-      setUser(normalizeUser(JSON.parse(savedUser)));
-    }
-    setIsLoading(false);
-  }, [token]);
+  // The session is resolved synchronously above, so there is never a pending
+  // state. Retained in the context so consumers keep compiling unchanged.
+  const isLoading = false;
 
   const login = async (email: string, password: string) => {
     const res = await authAPI.login({ email, password });
@@ -50,7 +57,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(normalized);
   };
 
-  const register = async (data: { name: string; email: string; password: string; role?: string; phone?: string }) => {
+  const register = async (data: RegisterData) => {
     await authAPI.register(data);
     // Don't auto-login — user should be redirected to the login page
   };
@@ -81,10 +88,4 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       {children}
     </AuthContext.Provider>
   );
-};
-
-export const useAuth = (): AuthContextType => {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth must be used within AuthProvider');
-  return ctx;
 };

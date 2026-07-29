@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/useAuth';
 import { FaBalanceScale, FaBars, FaTimes, FaSignOutAlt, FaTachometerAlt } from 'react-icons/fa';
 import './Navbar.css';
 
