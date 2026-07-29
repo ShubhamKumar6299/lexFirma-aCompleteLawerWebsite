@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { io, Socket } from 'socket.io-client';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/useAuth';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { FaArrowLeft, FaPaperPlane, FaCircle } from 'react-icons/fa';
@@ -30,8 +30,12 @@ const LawyerChatRoom: React.FC = () => {
   const [otherName, setOtherName] = useState('Client');
   const socketRef = useRef<Socket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  // Synced in an effect rather than during render — mutating a ref while
+  // rendering is not safe under concurrent rendering.
   const userRef = useRef(user);
-  userRef.current = user;
+  useEffect(() => {
+    userRef.current = user;
+  }, [user]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -46,7 +50,7 @@ const LawyerChatRoom: React.FC = () => {
     }).then(res => {
       setMessages(res.data.messages);
       // Extract the other party's name from the first message that isn't ours
-      const otherMsg = res.data.messages.find((m: ChatMsg) => m.senderId !== user?._id);
+      const otherMsg = res.data.messages.find((m: ChatMsg) => m.senderId !== userRef.current?._id);
       if (otherMsg) setOtherName(otherMsg.senderName);
     }).catch(console.error);
   }, [roomId, token]);

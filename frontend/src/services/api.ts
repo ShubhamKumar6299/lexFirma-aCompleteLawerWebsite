@@ -1,5 +1,36 @@
 import axios from 'axios';
 
+/** Values that can be serialized into a query string. */
+export type QueryParams = Record<string, string | number | boolean | undefined>;
+
+/** A JSON request body. Values stay `unknown` so callers keep their own types. */
+export type Payload = Record<string, unknown>;
+
+/** The error shape the API returns on failure. */
+export interface ApiErrorBody {
+  success?: boolean;
+  message?: string;
+  requiresVerification?: boolean;
+  email?: string;
+  phoneStep?: boolean;
+}
+
+/**
+ * Extracts a human-readable message from an unknown thrown value.
+ * Lets call sites use `catch (err: unknown)` instead of `any` while still
+ * surfacing the server's message.
+ */
+export const toErrorMessage = (err: unknown, fallback = 'Something went wrong'): string => {
+  if (axios.isAxiosError<ApiErrorBody>(err)) {
+    return err.response?.data?.message ?? err.message ?? fallback;
+  }
+  return err instanceof Error ? err.message : fallback;
+};
+
+/** Returns the API error body when the failure came from the server. */
+export const toErrorBody = (err: unknown): ApiErrorBody | undefined =>
+  axios.isAxiosError<ApiErrorBody>(err) ? err.response?.data : undefined;
+
 const API = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
   withCredentials: true,
@@ -46,25 +77,25 @@ export const authAPI = {
 
 // ── Lawyers ───────────────────────────────────────────────────────
 export const lawyerAPI = {
-  getAll: (params?: Record<string, any>) => API.get('/lawyers', { params }),
+  getAll: (params?: QueryParams) => API.get('/lawyers', { params }),
   getById: (id: string) => API.get(`/lawyers/${id}`),
   getMyProfile: () => API.get('/lawyers/me'),
-  create: (data: Record<string, any>) => API.post('/lawyers', data),
-  update: (id: string, data: Record<string, any>) => API.put(`/lawyers/${id}`, data),
+  create: (data: Payload) => API.post('/lawyers', data),
+  update: (id: string, data: Payload) => API.put(`/lawyers/${id}`, data),
 };
 
 // ── Cases ─────────────────────────────────────────────────────────
 export const caseAPI = {
-  getMyCases: (params?: Record<string, any>) => API.get('/cases', { params }),
-  create: (data: Record<string, any>) => API.post('/cases', data),
-  update: (id: string, data: Record<string, any>) => API.put(`/cases/${id}`, data),
+  getMyCases: (params?: QueryParams) => API.get('/cases', { params }),
+  create: (data: Payload) => API.post('/cases', data),
+  update: (id: string, data: Payload) => API.put(`/cases/${id}`, data),
   toggleVisibility: (id: string) => API.put(`/cases/${id}/visibility`, {}),
   delete: (id: string) => API.delete(`/cases/${id}`),
 };
 
 // ── Reviews ───────────────────────────────────────────────────────
 export const reviewAPI = {
-  getForLawyer: (lawyerId: string, params?: Record<string, any>) =>
+  getForLawyer: (lawyerId: string, params?: QueryParams) =>
     API.get(`/reviews/${lawyerId}`, { params }),
   create: (data: { lawyerId: string; rating: number; comment: string; isAnonymous?: boolean }) =>
     API.post('/reviews', data),
@@ -73,7 +104,7 @@ export const reviewAPI = {
 
 // ── Meetings ──────────────────────────────────────────────────────
 export const meetingAPI = {
-  schedule: (data: Record<string, any>) => API.post('/meetings', data),
+  schedule: (data: Payload) => API.post('/meetings', data),
   getMyMeetings: () => API.get('/meetings/my'),
   getLawyerMeetings: () => API.get('/meetings/lawyer'),
   updateStatus: (id: string, data: { status: string; notes?: string }) =>
@@ -82,7 +113,7 @@ export const meetingAPI = {
 
 // ── Messages ──────────────────────────────────────────────────────
 export const messageAPI = {
-  send: (data: Record<string, any>) => API.post('/messages', data),
+  send: (data: Payload) => API.post('/messages', data),
   getInbox: () => API.get('/messages/inbox'),
   markRead: (id: string) => API.put(`/messages/${id}/read`, {}),
 };
@@ -95,7 +126,7 @@ export const chatAPI = {
 
 // ── News ──────────────────────────────────────────────────────────
 export const newsAPI = {
-  getNews: (params?: Record<string, any>) => API.get('/news', { params }),
+  getNews: (params?: QueryParams) => API.get('/news', { params }),
 };
 
 // ── Chatbot ───────────────────────────────────────────────────────

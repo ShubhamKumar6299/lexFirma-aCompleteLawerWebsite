@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/useAuth';
+import { toErrorMessage } from '../../services/api';
 import toast from 'react-hot-toast';
 import { FaBalanceScale, FaEye, FaEyeSlash } from 'react-icons/fa';
 import './Auth.css';
@@ -20,8 +21,8 @@ const Register: React.FC = () => {
       await register(form);
       toast.success('Account created! Please verify your email.');
       navigate(`/auth/verify?email=${encodeURIComponent(form.email)}`);
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Registration failed');
+    } catch (err: unknown) {
+      toast.error(toErrorMessage(err, 'Registration failed'));
     } finally { setLoading(false); }
   };
 

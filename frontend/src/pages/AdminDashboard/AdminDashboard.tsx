@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/useAuth';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import {
@@ -8,6 +8,11 @@ import {
   FaChartBar, FaTrash, FaCheckCircle, FaTimesCircle,
   FaToggleOn, FaToggleOff, FaShieldAlt, FaSearch, FaSync
 } from 'react-icons/fa';
+import type {
+  AdminStatsResponse, AdminUser, AdminLawyer, AdminCase,
+  AdminReview, AdminMeeting, AdminMessage,
+} from '../../types';
+import type { Payload } from '../../services/api';
 import AvatarUpload from '../../components/AvatarUpload/AvatarUpload';
 import './AdminDashboard.css';
 
@@ -23,13 +28,13 @@ const AdminDashboard: React.FC = () => {
   const [search, setSearch] = useState('');
 
   // Data
-  const [stats, setStats] = useState<any>(null);
-  const [users, setUsers] = useState<any[]>([]);
-  const [lawyers, setLawyers] = useState<any[]>([]);
-  const [cases, setCases] = useState<any[]>([]);
-  const [reviews, setReviews] = useState<any[]>([]);
-  const [meetings, setMeetings] = useState<any[]>([]);
-  const [messages, setMessages] = useState<any[]>([]);
+  const [stats, setStats] = useState<AdminStatsResponse | null>(null);
+  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [lawyers, setLawyers] = useState<AdminLawyer[]>([]);
+  const [cases, setCases] = useState<AdminCase[]>([]);
+  const [reviews, setReviews] = useState<AdminReview[]>([]);
+  const [meetings, setMeetings] = useState<AdminMeeting[]>([]);
+  const [messages, setMessages] = useState<AdminMessage[]>([]);
 
   const headers = { Authorization: `Bearer ${token}` };
 
@@ -68,7 +73,7 @@ const AdminDashboard: React.FC = () => {
 
   useEffect(() => { fetch(tab); }, [tab]); // eslint-disable-line
 
-  const action = async (method: string, url: string, data?: any) => {
+  const action = async (method: string, url: string, data?: Payload) => {
     try {
       await axios({ method, url: `${API}${url}`, data, headers });
       toast.success('Done!');
@@ -151,7 +156,7 @@ const AdminDashboard: React.FC = () => {
               <table className="admin-table">
                 <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Joined</th></tr></thead>
                 <tbody>
-                  {stats.recentUsers?.map((u: any) => (
+                  {stats.recentUsers?.map(u => (
                     <tr key={u._id}>
                       <td>{u.name}</td>
                       <td>{u.email}</td>
@@ -222,7 +227,7 @@ const AdminDashboard: React.FC = () => {
               <tbody>
                 {lawyers.map(l => (
                   <tr key={l._id}>
-                    <td>{(l.userId as any)?.name}</td>
+                    <td>{l.userId?.name}</td>
                     <td style={{ fontSize: 13, color: 'var(--text-muted)' }}>{l.city}, {l.state}</td>
                     <td>⭐ {l.rating?.toFixed(1)}</td>
                     <td>
@@ -288,7 +293,7 @@ const AdminDashboard: React.FC = () => {
               <tbody>
                 {reviews.map(r => (
                   <tr key={r._id}>
-                    <td>{r.isAnonymous ? 'Anonymous' : (r.userId as any)?.name}</td>
+                    <td>{r.isAnonymous ? 'Anonymous' : r.userId?.name}</td>
                     <td>{'⭐'.repeat(r.rating)}</td>
                     <td style={{ maxWidth: 240, fontSize: 13, color: 'var(--text-secondary)' }}>
                       {r.comment?.slice(0, 80)}{r.comment?.length > 80 ? '...' : ''}
@@ -316,7 +321,7 @@ const AdminDashboard: React.FC = () => {
               <tbody>
                 {meetings.map(m => (
                   <tr key={m._id}>
-                    <td>{(m.userId as any)?.name}</td>
+                    <td>{m.userId?.name}</td>
                     <td style={{ textTransform: 'capitalize' }}>{m.meetingType}</td>
                     <td style={{ fontSize: 13, color: 'var(--text-muted)' }}>
                       {new Date(m.scheduledAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
@@ -397,7 +402,7 @@ const AdminDashboard: React.FC = () => {
                           {m.body}
                         </p>
                         <div style={{ marginTop: 8, fontSize: 11, color: 'var(--text-muted)' }}>
-                          To: <strong>{(m.lawyerId as any)?.userId?.name || 'Unknown Lawyer'}</strong>
+                          To: <strong>{m.lawyerId?.userId?.name || 'Unknown Lawyer'}</strong>
                           {' · '}
                           {new Date(m.createdAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                         </div>

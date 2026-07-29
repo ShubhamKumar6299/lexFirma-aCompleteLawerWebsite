@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { FaCamera } from 'react-icons/fa';
 import { authAPI } from '../../services/api';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/useAuth';
 import toast from 'react-hot-toast';
 import './AvatarUpload.css';
 

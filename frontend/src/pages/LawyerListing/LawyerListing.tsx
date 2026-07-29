@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { lawyerAPI } from '../../services/api';
+import { lawyerAPI, type QueryParams } from '../../services/api';
 import type { Lawyer, LawyerFilters } from '../../types';
 import LawyerCard from '../../components/LawyerCard/LawyerCard';
 import { FaFilter, FaSearch, FaTimes, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
@@ -32,7 +32,7 @@ const LawyerListing: React.FC = () => {
   const fetchLawyers = useCallback(async () => {
     setLoading(true);
     try {
-      const params: Record<string,any> = {};
+      const params: QueryParams = {};
       if (filters.specialization) params.specialization = filters.specialization;
       if (filters.city) params.city = filters.city;
       if (filters.state) params.state = filters.state;
@@ -55,7 +55,8 @@ const LawyerListing: React.FC = () => {
 
   useEffect(() => { fetchLawyers(); }, [fetchLawyers]);
 
-  const updateFilter = (key: keyof LawyerFilters, value: any) => {
+  // `undefined` clears a filter (e.g. "Any Rating").
+  const updateFilter = (key: keyof LawyerFilters, value: string | number | undefined) => {
     setFilters(prev => ({ ...prev, [key]: value, page: 1 }));
   };
 

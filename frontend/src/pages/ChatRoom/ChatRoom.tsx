@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { io, Socket } from 'socket.io-client';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/useAuth';
 import { lawyerAPI } from '../../services/api';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -32,11 +32,15 @@ const ChatRoom: React.FC = () => {
   const [connected, setConnected] = useState(false);
   const socketRef = useRef<Socket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  // Keep stable refs for user data to avoid re-running socket effect
+  // Keep stable refs for user data to avoid re-running socket effect.
+  // Synced in an effect rather than during render — mutating a ref while
+  // rendering is not safe under concurrent rendering.
   const userRef = useRef(user);
   const tokenRef = useRef(token);
-  userRef.current = user;
-  tokenRef.current = token;
+  useEffect(() => {
+    userRef.current = user;
+    tokenRef.current = token;
+  }, [user, token]);
 
   // Scroll to bottom on new messages
   useEffect(() => {

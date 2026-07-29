@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/useAuth';
+import { toErrorBody, toErrorMessage } from '../../services/api';
 import toast from 'react-hot-toast';
 import { FaBalanceScale, FaEye, FaEyeSlash } from 'react-icons/fa';
 import '../Auth/Auth.css';
@@ -19,15 +20,15 @@ const Login: React.FC = () => {
       await login(form.email, form.password);
       toast.success('Welcome back!');
       navigate('/');
-    } catch (err: any) {
-      const data = err.response?.data;
+    } catch (err: unknown) {
+      const data = toErrorBody(err);
       // If user needs verification, redirect to verify page
       if (data?.requiresVerification) {
-        toast.error(data.message);
-        navigate(`/auth/verify?email=${encodeURIComponent(data.email)}${data.phoneStep ? '&step=phone' : ''}`);
+        toast.error(data.message ?? 'Please verify your account');
+        navigate(`/auth/verify?email=${encodeURIComponent(data.email ?? form.email)}${data.phoneStep ? '&step=phone' : ''}`);
         return;
       }
-      toast.error(data?.message || 'Login failed');
+      toast.error(toErrorMessage(err, 'Login failed'));
     } finally { setLoading(false); }
   };
 
