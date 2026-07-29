@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { caseAPI, meetingAPI, messageAPI, chatAPI } from '../../services/api';
-import type { Case, Meeting } from '../../types';
+import type { Case, Meeting, InboxMessage, ChatRoomSummary } from '../../types';
 import toast from 'react-hot-toast';
 import { FaEye, FaEyeSlash, FaPlus, FaTrash, FaEnvelope, FaVideo, FaPhone, FaBriefcase, FaEdit, FaComments } from 'react-icons/fa';
 import AvatarUpload from '../../components/AvatarUpload/AvatarUpload';
@@ -14,8 +14,8 @@ const LawyerDashboard: React.FC = () => {
   const navigate = useNavigate();
   const [cases, setCases] = useState<Case[]>([]);
   const [meetings, setMeetings] = useState<Meeting[]>([]);
-  const [messages, setMessages] = useState<any[]>([]);
-  const [chatRooms, setChatRooms] = useState<any[]>([]);
+  const [messages, setMessages] = useState<InboxMessage[]>([]);
+  const [chatRooms, setChatRooms] = useState<ChatRoomSummary[]>([]);
   const [activeTab, setActiveTab] = useState<'cases' | 'meetings' | 'messages' | 'chats'>('cases');
   const [loading, setLoading] = useState(true);
   const [showAddCase, setShowAddCase] = useState(false);
@@ -73,7 +73,10 @@ const LawyerDashboard: React.FC = () => {
     try {
       await messageAPI.markRead(id);
       setMessages(prev => prev.map(m => m._id === id ? { ...m, isRead: true } : m));
-    } catch { }
+    } catch (err) {
+      // Non-critical: the message stays unread and can be retried.
+      console.error('Failed to mark message as read', err);
+    }
   };
 
   const stats = {
@@ -221,7 +224,7 @@ const LawyerDashboard: React.FC = () => {
                       {m.meetingType === 'video' ? <FaVideo /> : <FaPhone />}
                     </div>
                     <div className="meeting-info">
-                      <h4>{(m.userId as any)?.name || 'Client'}</h4>
+                      <h4>{m.userId?.name || 'Client'}</h4>
                       <p className="meeting-time">{new Date(m.scheduledAt).toLocaleString('en-IN')}</p>
                       {m.agenda && <p className="meeting-agenda">{m.agenda}</p>}
                       <span className={`badge ${m.status === 'confirmed' ? 'badge-green' : m.status === 'pending' ? 'badge-gold' : 'badge-gray'}`}>{m.status}</span>
@@ -244,7 +247,7 @@ const LawyerDashboard: React.FC = () => {
               <div className="empty-state"><div className="empty-state-icon">💬</div><p className="empty-state-text">No chat conversations yet. Clients can start a chat from your profile.</p></div>
             ) : (
               <div className="meetings-list">
-                {chatRooms.map((room: any) => (
+                {chatRooms.map(room => (
                   <div key={room._id} className="meeting-item card" style={{ cursor: 'pointer' }} onClick={() => {
                     navigate(`/chat/room/${encodeURIComponent(room._id)}`);
                   }}>

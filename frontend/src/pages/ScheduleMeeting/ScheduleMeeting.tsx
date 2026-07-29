@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { lawyerAPI, meetingAPI } from '../../services/api';
+import { lawyerAPI, meetingAPI, toErrorMessage } from '../../services/api';
 import type { Lawyer } from '../../types';
 import toast from 'react-hot-toast';
 import { FaVideo, FaPhone, FaArrowLeft, FaClock } from 'react-icons/fa';
@@ -32,8 +32,8 @@ const ScheduleMeeting: React.FC = () => {
       const res = await meetingAPI.schedule({ lawyerId, ...form });
       toast.success('Meeting scheduled! Link: ' + res.data.meeting.meetingLink);
       navigate('/lawyers');
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to schedule meeting');
+    } catch (err: unknown) {
+      toast.error(toErrorMessage(err, 'Failed to schedule meeting'));
     } finally { setSubmitting(false); }
   };
 

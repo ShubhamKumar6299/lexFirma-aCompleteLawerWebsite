@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { authAPI } from '../../services/api';
+import { authAPI, toErrorMessage } from '../../services/api';
 import toast from 'react-hot-toast';
 import { FaEnvelopeOpenText, FaMobileAlt } from 'react-icons/fa';
 import './Verify.css';
@@ -112,9 +112,9 @@ const VerifyAccount: React.FC = () => {
             await authAPI.sendPhoneOtp(email, res.data.phone);
             setStep('phone');
             setResendTimer(RESEND_COOLDOWN);
-          } catch (err: any) {
+          } catch (err: unknown) {
             // If Twilio isn't configured, skip phone verification
-            const msg = err.response?.data?.message || '';
+            const msg = toErrorMessage(err, '');
             if (msg.includes('not configured') || msg.includes('credentials')) {
               toast.success('Phone verification skipped (SMS service not configured)');
               setStep('done');
@@ -132,9 +132,9 @@ const VerifyAccount: React.FC = () => {
           setTimeout(() => navigate('/auth/login'), 2500);
         }, 1000);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       setOtpStatus('error');
-      setError(err.response?.data?.message || 'Verification failed');
+      setError(toErrorMessage(err, 'Verification failed'));
     } finally {
       setLoading(false);
     }
@@ -152,9 +152,9 @@ const VerifyAccount: React.FC = () => {
         setStep('done');
         setTimeout(() => navigate('/auth/login'), 2500);
       }, 1000);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setOtpStatus('error');
-      setError(err.response?.data?.message || 'Verification failed');
+      setError(toErrorMessage(err, 'Verification failed'));
     } finally {
       setLoading(false);
     }
@@ -169,8 +169,8 @@ const VerifyAccount: React.FC = () => {
       setError('');
       setOtpStatus('');
       inputRefs.current[0]?.focus();
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to resend OTP');
+    } catch (err: unknown) {
+      toast.error(toErrorMessage(err, 'Failed to resend OTP'));
       setResendTimer(0);
     }
   };

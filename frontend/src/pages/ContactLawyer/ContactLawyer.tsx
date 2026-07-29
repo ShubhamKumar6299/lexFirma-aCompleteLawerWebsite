@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { lawyerAPI, messageAPI } from '../../services/api';
+import { lawyerAPI, messageAPI, toErrorMessage } from '../../services/api';
 import type { Lawyer } from '../../types';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/useAuth';
 import toast from 'react-hot-toast';
 import { FaEnvelope, FaArrowLeft, FaPaperPlane } from 'react-icons/fa';
 import './ContactLawyer.css';
@@ -35,8 +35,8 @@ const ContactLawyer: React.FC = () => {
       await messageAPI.send({ lawyerId, ...form });
       toast.success('Message sent! The lawyer will respond via email.');
       setSent(true);
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to send message');
+    } catch (err: unknown) {
+      toast.error(toErrorMessage(err, 'Failed to send message'));
     } finally { setSubmitting(false); }
   };
 

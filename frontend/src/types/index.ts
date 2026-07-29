@@ -99,6 +99,29 @@ export interface Meeting {
   createdAt: string;
 }
 
+/** A contact-form message in a lawyer's inbox (`GET /api/messages/inbox`). */
+export interface InboxMessage {
+  _id: string;
+  lawyerId: string;
+  userId?: Pick<User, '_id' | 'name' | 'email' | 'avatar'>;
+  senderName: string;
+  senderEmail: string;
+  subject: string;
+  body: string;
+  isRead: boolean;
+  createdAt: string;
+}
+
+/** A conversation summary from `GET /api/chat/rooms`. `_id` is the room id. */
+export interface ChatRoomSummary {
+  _id: string;
+  lastMessage: string;
+  lastSender: string;
+  lastTime: string;
+  count: number;
+  otherUser: { name: string; email: string; avatar?: string };
+}
+
 export interface NewsArticle {
   _id?: string;
   title: string;
@@ -108,6 +131,95 @@ export interface NewsArticle {
   source: string;
   publishedAt: string;
   category: string;
+}
+
+// ── Admin dashboard ───────────────────────────────────────────────
+// The admin endpoints return documents with their references populated,
+// so these describe the populated shape rather than the raw model.
+
+/** A user reference populated into another admin document. */
+export interface PopulatedUserRef {
+  _id: string;
+  name: string;
+  email?: string;
+}
+
+/** A lawyer profile reference, itself populated with its owning user. */
+export interface PopulatedLawyerRef {
+  _id: string;
+  userId?: PopulatedUserRef;
+}
+
+export interface AdminStatsResponse {
+  success: boolean;
+  stats: {
+    users: number;
+    lawyers: number;
+    cases: number;
+    meetings: number;
+    reviews: number;
+    messages: number;
+  };
+  recentUsers: AdminUser[];
+}
+
+export interface AdminUser {
+  _id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  createdAt: string;
+}
+
+export interface AdminLawyer {
+  _id: string;
+  userId?: PopulatedUserRef;
+  city: string;
+  state: string;
+  rating: number;
+  isVerified: boolean;
+  isAvailable: boolean;
+}
+
+export interface AdminCase {
+  _id: string;
+  title: string;
+  caseType: string;
+  status: CaseStatus;
+  isPublic: boolean;
+  filedDate: string;
+  lawyerId?: PopulatedLawyerRef;
+}
+
+export interface AdminReview {
+  _id: string;
+  userId?: PopulatedUserRef;
+  lawyerId?: PopulatedLawyerRef;
+  rating: number;
+  comment: string;
+  isAnonymous: boolean;
+  createdAt: string;
+}
+
+export interface AdminMeeting {
+  _id: string;
+  userId?: PopulatedUserRef;
+  lawyerId?: PopulatedLawyerRef;
+  meetingType: MeetingType;
+  scheduledAt: string;
+  status: MeetingStatus;
+  meetingLink?: string;
+}
+
+export interface AdminMessage {
+  _id: string;
+  lawyerId?: PopulatedLawyerRef;
+  senderName: string;
+  senderEmail: string;
+  subject: string;
+  body: string;
+  isRead: boolean;
+  createdAt: string;
 }
 
 export interface AuthResponse {
